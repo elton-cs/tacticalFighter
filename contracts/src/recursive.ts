@@ -1,11 +1,11 @@
 import { Field, Struct, ZkProgram } from "o1js";
 
-class Player extends Struct({
+export class Player extends Struct({
     health: Field,
     stamina: Field
 }) {}
 
-class PlayerSet extends Struct({
+export class PlayerSet extends Struct({
     p1: Player,
     p2: Player,
 }) {}
@@ -15,8 +15,8 @@ function generateProofOfGameStart(statsFromPlayer: Player): PlayerSet {
     return set
 }
 
-const StartGameCircuit = ZkProgram({
-    name: 'start-game',
+export const StartGameCircuit = ZkProgram({
+    name: 'Start Game Circuit',
     publicInput: Player,
     publicOutput: PlayerSet,
 
@@ -27,3 +27,7 @@ const StartGameCircuit = ZkProgram({
         }
     },
 })
+
+export class StartGameCircuitProof extends ZkProgram.Proof(
+    StartGameCircuit
+){}
