@@ -1,11 +1,13 @@
 import { GameCircuitProof, GameCircuit } from './recursive';
-import { Bool, Field } from 'o1js';
+import { Bool, Field, SelfProof } from 'o1js';
 import { GameSet, MoveState, Player } from './types';
 import { printGameState } from './printFunctions';
+import { VerifyRoundCircuit } from './VerifyRound';
 
 describe('Start Game', () => {
     beforeAll(async () => {
-        await GameCircuit.compile();
+        await GameCircuit.compile()
+        await VerifyRoundCircuit.compile()
     })
 
     let setPlayerStats = new Player({
@@ -25,6 +27,7 @@ describe('Start Game', () => {
     let proof0: GameCircuitProof
     let proof1: GameCircuitProof
     let proof2: GameCircuitProof
+    let proof3: SelfProof<GameSet, GameSet>
 
     it('create new game', async () => {
         proof0 = await GameCircuit.startNewGame(setDefaultGameSet, setPlayerStats)
@@ -43,6 +46,12 @@ describe('Start Game', () => {
         let p2Move = Field(3)
         proof2 = await GameCircuit.submitMove(proof1.publicOutput, proof1, Bool(false), p2Move)
         let output = proof2.publicOutput
+        printGameState(output)
+    })
+
+    it('verifies round result', async () => {
+        proof3 = await VerifyRoundCircuit.verifyRound(proof2.publicOutput)
+        let output = proof3.publicOutput
         printGameState(output)
     })
 })
