@@ -15,3 +15,9 @@ export class GameSet extends Struct({
     p2: Player,
     moveState: MoveState,
 }) {}
+
+export const Action = {
+    charge : Field(1),
+    strike : Field(2),
+    block : Field(3),
+}
