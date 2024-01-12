@@ -1,45 +1,19 @@
-import { Bool, Field, Provable, Struct, ZkProgram } from "o1js";
+import { Bool, Field, Provable, SelfProof, ZkProgram } from "o1js";
+import { GameSet, MoveState, Player } from "./types";
 
-export class Player extends Struct({
-    health: Field,
-    stamina: Field
-}) {}
-
-export class MoveState extends Struct({
-    p1Move: Field,
-    p2Move: Field,
-}) {}
-
-export class GameSet extends Struct({
-    p1: Player,
-    p2: Player,
-    moveState: MoveState,
-}) {}
-
-
-function startNewGame(statsFromPlayer: Player): GameSet {
-    let startMoveState = new MoveState({p1Move: Field(0), p2Move: Field(0)})
-    let gameSet = new GameSet({p1: statsFromPlayer, p2: statsFromPlayer, moveState: startMoveState})
-    return gameSet
+function startNewGame(defaultGameSet: GameSet, defaultPlayerStats: Player): GameSet {
+    let defaultMoveSet = new MoveState({
+        p1Move: Field(0),
+        p2Move: Field(0),
+    })
+    let standardGameSet = new GameSet({
+        p1: defaultPlayerStats,
+        p2: defaultPlayerStats,
+        moveState: defaultMoveSet
+    })
+    return standardGameSet
 }
-export const StartGameCircuit = ZkProgram({
-    name: 'Start Game Circuit',
-    publicInput: Player,
-    publicOutput: GameSet,
-
-    methods: {
-        startNewGame: {
-            privateInputs: [],
-            method: startNewGame
-        }
-    },
-})
-export class StartGameCircuitProof extends ZkProgram.Proof(
-    StartGameCircuit
-){}
-
-
-function submitMove(prevProof: StartGameCircuitProof, isPlayer1: Bool, playerMove: Field): GameSet {
+function submitMove(oldGameSet: GameSet, prevProof: SelfProof<GameSet, GameSet>, isPlayer1: Bool, playerMove: Field): GameSet {
     prevProof.verify()
     playerMove.assertGreaterThanOrEqual(Field(1))
     playerMove.assertLessThanOrEqual(Field(3))
@@ -68,17 +42,23 @@ function submitMove(prevProof: StartGameCircuitProof, isPlayer1: Bool, playerMov
     })
     return newGameSet
 }
-export const SubmitMoveCircuit = ZkProgram({
-    name: 'Submit Move Circuit',
+export const GameCircuit = ZkProgram({
+    name: 'Game Circuit',
+    publicInput: GameSet,
     publicOutput: GameSet,
 
     methods: {
+        startNewGame: {
+            privateInputs: [Player],
+            method: startNewGame
+        },
+
         submitMove: {
-            privateInputs: [StartGameCircuitProof, Bool, Field],
-            method: submitMove
+            privateInputs: [SelfProof<GameSet, GameSet>, Bool, Field],
+            method: submitMove,
         }
-    },
+    }
 })
-export class SubmitMoveCircuitProof extends ZkProgram.Proof(
-    SubmitMoveCircuit
+export class GameCircuitProof extends ZkProgram.Proof(
+    GameCircuit
 ){}
