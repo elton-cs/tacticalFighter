@@ -1,8 +1,8 @@
-import { GameCircuitProof, GameCircuit } from './recursive';
+import { GameCircuitProof, GameCircuit } from './GameCircuit';
 import { Bool, Field, SelfProof } from 'o1js';
 import { GameSet, MoveState, Player } from './types';
 import { printGameState } from './printFunctions';
-import { VerifyRoundCircuit } from './VerifyRound';
+import { VerifyRoundCircuit } from './VerifyRoundCircuit';
 
 export function makeListOfAllMoveStates(): MoveState[] {
     let moveList: MoveState[] = [];
