@@ -1,10 +1,16 @@
-import { Player, StartGameCircuit } from './recursive';
-import { Field } from 'o1js';
+import { Player, StartGameCircuit, StartGameCircuitProof, SubmitMoveCircuit, SubmitMoveCircuitProof } from './recursive';
+import { Bool, Field } from 'o1js';
 
 describe('Start Game', () => {
     beforeAll(async () => {
-        const {verificationKey} = await StartGameCircuit.compile();
+        await StartGameCircuit.compile();
+        await SubmitMoveCircuit.compile();
     })
+
+    let proof0: StartGameCircuitProof
+    let proof1: SubmitMoveCircuitProof
+    let proof2: SubmitMoveCircuitProof
+
 
     it('create start game proof', async () => {
         let playerStats = new Player({
@@ -13,9 +19,18 @@ describe('Start Game', () => {
         })
         console.log(playerStats)
         
-        const proof0 = await StartGameCircuit.generateProofOfGameStart(playerStats)
+        proof0 = await StartGameCircuit.startNewGame(playerStats)
 
         let output = proof0.publicOutput
-        console.log(output)
+        console.log(output.moveState.p1Move.toJSON())
+        console.log(output.moveState.p2Move.toJSON())
+    })
+
+    it('player 1 submits a move',async () => {
+        let plMove = Field(1)
+        proof1 = await SubmitMoveCircuit.submitMove(proof0, Bool(true), plMove)
+        let output = proof1.publicOutput
+        console.log(output.moveState.p1Move.toJSON())
+        console.log(output.moveState.p2Move.toJSON())
     })
 })
